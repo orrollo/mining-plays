@@ -1,23 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Common;
 
 namespace incomeProcessing
 {
     class Program
     {
-        protected static string DataDirectory = Path.Combine(Directory.GetCurrentDirectory(),"..\\..\\..\\data");
-
-        class IntDictionary : Dictionary<int,int>
-        {
-             
-        }
-
         static void Main(string[] args)
         {
             List<int> books, users;
@@ -37,22 +30,22 @@ namespace incomeProcessing
             MapCsvFile(getUser, "users", 1000);
 
             Console.WriteLine("map-reduce: reduce files by books to vectors");
-            ReduceFiles(getBook, getUser, "books", books);
+            ReduceCsvFiles(getBook, getUser, "books", books);
 
             Console.WriteLine("map-reduce: reduce files by users to vectors");
-            ReduceFiles(getUser, getBook, "users", users);
+            ReduceCsvFiles(getUser, getBook, "users", users);
         }
 
-        private static void ReduceFiles(Func<int, int, int> getGroup, Func<int, int, int> getValue, string subdir, List<int> keys)
+        private static void ReduceCsvFiles(Func<int, int, int> getGroup, Func<int, int, int> getValue, string subdir, List<int> keys)
         {
-            var srcPath = GetDataPath(subdir);
+            var srcPath = Helper.GetDataPath(subdir);
             if (!Directory.Exists(srcPath)) return;
 
             var fileName = subdir + ".vec";
             Console.WriteLine("making file: {0}", fileName);
-            var outFile = GetDataPath(fileName);
+            var outFile = Helper.GetDataPath(fileName);
 
-            using (var wrt = new StreamWriter(GetDataPath(outFile)))
+            using (var wrt = new StreamWriter(Helper.GetDataPath(outFile)))
             {
                 var files = Directory.GetFiles(srcPath, "*.src");
 
@@ -60,14 +53,15 @@ namespace incomeProcessing
                     {
 
                         lock (files) Console.WriteLine("processing file <{1}\\{0}>", Path.GetFileName(file), subdir);
-                        var vectors = new Dictionary<int, IntDictionary>();
-                        InputTextReader(file, line =>
+                        var vectors = new Dictionary<int, IntVector>();
+                        Helper.InputTextReader(file, line =>
                             {
                                 var grp = line.Split('\t');
                                 int book = int.Parse(grp[0]), user = int.Parse(grp[1]), rate = int.Parse(grp[2]);
                                 int group = getGroup(book, user), value = getValue(book, user);
-                                if (!vectors.ContainsKey(group)) vectors[group] = new IntDictionary();
+                                if (!vectors.ContainsKey(group)) vectors[group] = new IntVector(group);
                                 vectors[group][value] = rate;
+                                return true;
                             });
                         var sb = new StringBuilder();
                         foreach (var pp in vectors)
@@ -96,10 +90,10 @@ namespace incomeProcessing
         {
             Func<int, string> getName = x => string.Format("{0:d4}.src", x);
 
-            var dstPath = GetDataPath(subdir);
+            var dstPath = Helper.GetDataPath(subdir);
             if (!Directory.Exists(dstPath)) Directory.CreateDirectory(dstPath);
             var writers = new Dictionary<int, StreamWriter>();
-            InputTextReader(GetCsvDataFileName(), line =>
+            Helper.InputTextReader(GetCsvDataFileName(), line =>
                 {
                     var grp = line.Split('\t');
                     int book = int.Parse(grp[0]), user = int.Parse(grp[1]), rate = int.Parse(grp[2]);
@@ -108,6 +102,7 @@ namespace incomeProcessing
 
                     if (!writers.ContainsKey(@group)) writers[group] = new StreamWriter(Path.Combine(dstPath, getName(group)));
                     writers[group].WriteLine(line);
+                    return true;
                 });
             var keys = writers.Keys.ToArray();
             foreach (var key in keys)
@@ -125,8 +120,8 @@ namespace incomeProcessing
             var re = new Regex(@"\(\d+,(\d+),(\d+),'(\d)'\)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
             using (var wrt = new StreamWriter(GetCsvDataFileName()))
             {
-                var fileName = GetDataPath("src.sql.gz");
-                InputTextReader(fileName, line =>
+                var fileName = Helper.GetDataPath("src.sql.gz");
+                Helper.InputTextReader(fileName, line =>
                     {
                         var mc = re.Matches(line);
                         foreach (Match m in mc)
@@ -146,6 +141,7 @@ namespace incomeProcessing
                             line = string.Join("\t", record1);
                             wrt.WriteLine(line);
                         }
+                        return true;
                     });
             }
 
@@ -156,50 +152,14 @@ namespace incomeProcessing
             usersList.Sort();
         }
 
-        private static void InputTextReader(string fileName, Action<string> proc)
-        {
-            if (!fileName.ToLower().EndsWith(".gz"))
-            {
-                ProcessTextReader(proc, new StreamReader(fileName));
-            }
-            else
-            {
-                using (var fileStream = new FileStream(fileName, FileMode.Open))
-                {
-                    using (var ds = new GZipStream(fileStream, CompressionMode.Decompress))
-                    {
-                        ProcessTextReader(proc, new StreamReader(ds));
-                    }
-                }
-            }
-        }
-
-        private static void ProcessTextReader(Action<string> proc, StreamReader streamReader)
-        {
-            using (var rdr = streamReader)
-            {
-                while (!rdr.EndOfStream)
-                {
-                    var line = (rdr.ReadLine() ?? string.Empty).Trim();
-                    if (string.IsNullOrEmpty(line)) continue;
-                    proc(line);
-                }
-            }
-        }
-
         private static string GetCsvDataFileName()
         {
-            return GetDataPath("src.csv");
-        }
-
-        private static string GetDataPath(string fileName)
-        {
-            return Path.Combine(DataDirectory, fileName);
+            return Helper.GetDataPath("src.csv");
         }
 
         private static void SaveDataList(List<int> data, string fileName)
         {
-            using (var wrt = new StreamWriter(GetDataPath(fileName)))
+            using (var wrt = new StreamWriter(Helper.GetDataPath(fileName)))
             {
                 wrt.WriteLine(data.Count);
                 for (int index = 0; index < data.Count; index++) wrt.WriteLine("{0}\t{1}", index, data[index]);
