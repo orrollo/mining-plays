@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -85,7 +86,7 @@ namespace incomeProcessing
                                 wrt.WriteLine(sb.ToString());
                             }
                         }
-
+                        File.Delete(file);
                     });
                 wrt.Flush();
             }
@@ -124,7 +125,8 @@ namespace incomeProcessing
             var re = new Regex(@"\(\d+,(\d+),(\d+),'(\d)'\)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
             using (var wrt = new StreamWriter(GetCsvDataFileName()))
             {
-                InputTextReader(GetDataPath("src.sql"), line =>
+                var fileName = GetDataPath("src.sql.gz");
+                InputTextReader(fileName, line =>
                     {
                         var mc = re.Matches(line);
                         foreach (Match m in mc)
@@ -156,7 +158,25 @@ namespace incomeProcessing
 
         private static void InputTextReader(string fileName, Action<string> proc)
         {
-            using (var rdr = new StreamReader(fileName))
+            if (!fileName.ToLower().EndsWith(".gz"))
+            {
+                ProcessTextReader(proc, new StreamReader(fileName));
+            }
+            else
+            {
+                using (var fileStream = new FileStream(fileName, FileMode.Open))
+                {
+                    using (var ds = new GZipStream(fileStream, CompressionMode.Decompress))
+                    {
+                        ProcessTextReader(proc, new StreamReader(ds));
+                    }
+                }
+            }
+        }
+
+        private static void ProcessTextReader(Action<string> proc, StreamReader streamReader)
+        {
+            using (var rdr = streamReader)
             {
                 while (!rdr.EndOfStream)
                 {
