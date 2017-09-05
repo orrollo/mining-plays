@@ -1,15 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Common
 {
-    public class IntVector : Dictionary<int,int>, IIntVector
+    public class IntVectorEx : SortedList<int,int>, IIntVector
     {
         public int Group { get; set; }
 
-        public IntVector(int group)
+        public IntVectorEx(int group)
         {
             Group = group;
         }

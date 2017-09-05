@@ -49,13 +49,14 @@ namespace Common
             return Path.Combine(GetDataDirectory(), fileName);
         }
 
-        public static void InputTextVectors(string fileName, Func<IntVector, bool> proc)
+        public static void InputTextVectors(string fileName, Func<IIntVector, bool> proc)
         {
             InputTextReader(GetDataPath(fileName), line =>
                 {
                     var arr = line.Split(new[] {':'}, 2);
 
-                    var vector = new IntVector(int.Parse(arr[0]));
+                    var vector = new IntVectorEx(int.Parse(arr[0]));
+
                     var groups = arr[1].Split(',');
                     foreach (var group in groups)
                     {
