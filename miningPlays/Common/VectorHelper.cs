@@ -54,15 +54,26 @@ namespace Common
             foreach (var pp in a)
             {
                 var key = pp.Key;
-                var value = pp.Value;
-                dist += b.ContainsKey(key) ? sq(value - b[key]) : sq(farAway - value);
+                if (!b.ContainsKey(key)) continue;
+                dist += pp.Value*b[key];
             }
-            foreach (var pp in b)
-            {
-                if (a.ContainsKey(pp.Key)) continue;
-                dist += sq(farAway - pp.Value);
-            }
-            return Math.Sqrt(dist);
+            return 1.0 -  dist/(a.Length*b.Length);
+            //return Math.Abs((a.Count * b.Count) / (0.0001 + dist));
+
+
+            //double dist = 0;
+            //foreach (var pp in a)
+            //{
+            //    var key = pp.Key;
+            //    var value = pp.Value;
+            //    dist += b.ContainsKey(key) ? sq(value - b[key]) : sq(farAway - value);
+            //}
+            //foreach (var pp in b)
+            //{
+            //    if (a.ContainsKey(pp.Key)) continue;
+            //    dist += sq(farAway - pp.Value);
+            //}
+            //return Math.Sqrt(dist);
         }
     }
 }

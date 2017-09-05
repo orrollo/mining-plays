@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,11 +12,22 @@ namespace clusterByDistances
     {
         static void Main(string[] args)
         {
+            DoGroup("users", 0.0);
+            DoGroup("books", 0.0);
+
+            Console.WriteLine("enter to exit...");
+            Console.ReadLine();
+        }
+
+        private static void DoGroup(string subdir, double koef)
+        {
+            var fileName = string.Format("{0}.vec", subdir);
+
             double dist, norm;
-            var fileName = "users.vec";
             TeachDistances(fileName, 100, out dist, out norm);
 
-            dist += 2*norm;
+            //dist += koef*norm;
+            //dist /= 3;
 
             var minVectorLength = 5;
             Console.WriteLine("average distance = {0}; minimum vector length = {1}", dist, minVectorLength);
@@ -64,35 +76,62 @@ namespace clusterByDistances
                         }
                     }
                     count++;
-                    if ((count % 1000) == 0)
+                    if ((count%1000) == 0)
                         Console.WriteLine("processed {0} vectors, found {1} centers", count, centers.Count);
-                    //return count < 30000;
                     return true;
                 });
             // now we have "centers" set
             Console.WriteLine("extracted {0} centers", centers.Count);
 
             // need reduce (join) centers here
-            var distMax = 3 * dist;
+            var distMax = 3*dist;
             Console.WriteLine("processing vector distances matrix...");
-            var matr = CalcCentersDistances(centers);
 
             var groupCount = new List<int>();
-            for (int steps = 0; steps < 30; steps++)
+            var matr = CalcCentersDistances(centers);
+            Dictionary<int, List<VectorCenter>> grouped = null;
+
+            grouped = GroupByDistance(centers, distMax, matr);
+            Console.WriteLine("groups with distance limit {0} is {1}", distMax, grouped.Count);
+
+            //for (int steps = 0; steps < 30; steps++)
+            //{
+            //    Console.WriteLine("distance {0}; process grouping...", distMax);
+            //    grouped = GroupByDistance(centers, distMax, matr);
+            //    groupCount.Add(grouped.Count);
+            //    Console.WriteLine("groups with distance limit {0} is {1}", distMax, groupCount.Last());
+            //    if (steps > 0 && groupCount[steps] == groupCount[steps - 1])
+            //    {
+            //        Console.WriteLine("group count is not changed, so stop grouping.");
+            //        break;
+            //    }
+            //    distMax = distMax*1.1;
+            //}
+
+            // saving group info
+            if (grouped != null)
             {
-                Console.WriteLine("distance {0}; process grouping...", distMax);
-                var grouped = GroupByDistance(centers, distMax, matr);
-                groupCount.Add(grouped.Count);
-                Console.WriteLine("groups with distance limit {0} is {1}", distMax, groupCount.Last());
-                if (steps > 0 && groupCount[steps] == groupCount[steps - 1])
+                // convert groups to id set
+                foreach (var grpPair in grouped)
                 {
-                    Console.WriteLine("group count is not changed, so stop grouping.");
-                    break;
+                    int code = grpPair.Key;
+                    Console.WriteLine("processing group {0}...", code);
+                    var idList = new HashSet<int>();
+                    foreach (VectorCenter center in grpPair.Value) foreach (var item in center.Items) idList.Add(item);
+                    // 
+                    var dstPath = Helper.GetDataPath(subdir);
+                    using (var wrt = new StreamWriter(Path.Combine(dstPath, string.Format("{0:d5}.rez", code))))
+                    {
+                        Helper.InputTextReader(Helper.GetDataPath(fileName), line =>
+                            {
+                                var arr = line.Split(new[] {':'}, 2);
+                                int id = int.Parse(arr[0]);
+                                if (idList.Contains(id)) wrt.WriteLine(line);
+                                return true;
+                            });
+                    }
                 }
-                distMax = distMax * 1.1;
             }
-            Console.WriteLine("enter to exit...");
-            Console.ReadLine();
         }
 
         private static Dictionary<int, List<VectorCenter>> GroupByDistance(List<VectorCenter> centers, double distMax, TriangleStorage matr)

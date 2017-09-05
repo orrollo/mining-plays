@@ -67,5 +67,12 @@ namespace Common
                     return proc(vector);
                 });
         }
+
+        public static double GetLength(IIntVector vec)
+        {
+            double len = 0;
+            foreach (var pp in vec) len += pp.Value*pp.Value;
+            return Math.Sqrt(len);
+        }
     }
 }
