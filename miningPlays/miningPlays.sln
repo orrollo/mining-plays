@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "randomIndexes", "randomIndexes\randomIndexes.csproj", "{07A4ECE8-6EE0-47DD-AE02-6AEB14E23784}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "minHashing", "minHashing\minHashing.csproj", "{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,16 @@ Global
 		{07A4ECE8-6EE0-47DD-AE02-6AEB14E23784}.Release|Mixed Platforms.Build.0 = Release|x86
 		{07A4ECE8-6EE0-47DD-AE02-6AEB14E23784}.Release|x86.ActiveCfg = Release|x86
 		{07A4ECE8-6EE0-47DD-AE02-6AEB14E23784}.Release|x86.Build.0 = Release|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Debug|x86.ActiveCfg = Debug|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Debug|x86.Build.0 = Debug|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Release|Any CPU.ActiveCfg = Release|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Release|Mixed Platforms.Build.0 = Release|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Release|x86.ActiveCfg = Release|x86
+		{1B294E01-9AB7-4C9A-8B0D-62B952CECBDE}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
