@@ -10,16 +10,19 @@ namespace minHashing
     {
         static void Main(string[] args)
         {
-            string subdir = "users";
+            string subdir = "books";
             var fileName = string.Format("{0}.vec", subdir);
 
             var mh = new MinHashing(16, 15);
+
+            var cnts = new List<int>();
 
             var dic = new Dictionary<int, MinHashSign>();
             Helper.InputTextReader(Helper.GetDataPath(fileName), line =>
                 {
                     var arr = line.Split(new[] { ':' }, 2);
                     var groups = arr[1].Split(',');
+                    cnts.Add(groups.Length);
 
                     int code = int.Parse(arr[0]);
 
@@ -34,6 +37,8 @@ namespace minHashing
                     dic[code] = mh.ToSign();
                     return true;
                 });
+
+            Console.WriteLine("average group cnt: {0}", cnts.Average());
 
             var keys = dic.Keys.ToArray();
             var dd = new List<double>();
@@ -84,7 +89,7 @@ namespace minHashing
                 if ((count % 1000) == 0) Console.WriteLine("lines: {0}; centers: {1}", count, centers.Count);
             }
 
-            for (int i = 0; i < items.Count; i++) Console.WriteLine("group {0} count: {1}", i, items[i].Count);
+            for (int i = items.Count-1; i >= 0; i--) Console.WriteLine("group {0} count: {1}", i, items[i].Count);
             //
             Console.WriteLine("press enter...");
             Console.ReadLine();
